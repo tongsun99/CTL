@@ -1,0 +1,62 @@
+# @package _group_
+common:
+  fp16: false
+  log_format: json
+  log_interval: 100 
+
+checkpoint:
+  no_epoch_checkpoints: true
+  save_interval: 1
+  save_interval_updates: 1000
+  keep_interval_updates: 5
+  best_checkpoint_metric: macro_f1
+  maximize_best_checkpoint_metric: true
+
+distributed_training:
+  ddp_backend: c10d
+  find_unused_parameters: true
+  distributed_world_size: 1
+
+task:
+  _name: sign_classification
+  data: /home2/tsun/code/vac_s2t/data/p14t/pami/data_mu/rw_cls/best_4500/remove0
+  data_bin: /home2/tsun/data/sign/vacs2t/PHOENIX2014T/pami
+  labels: sent
+  normalize: false
+  label_path: /home2/tsun/code/vac_s2t/data/p14t/pami/model_mu/rw_cls/configs/sign.json
+
+dataset:
+  num_workers: 1
+  batch_size: 32
+  batch_size_valid: 1
+  max_tokens: null
+  validate_interval: 1
+  validate_interval_updates: 1000
+
+criterion:
+  _name: slue_sequence_classification
+  class_weights: null
+
+optimization:
+  max_update: 500000
+  max_epoch: 20
+  lr: [2e-5]
+  sentence_avg: true
+  update_freq: [1]
+
+optimizer:
+  _name: adam
+  adam_betas: (0.9,0.98)
+  adam_eps: 1e-08
+
+lr_scheduler:
+  _name: tri_stage
+  phase_ratio: [0.1, 0.0, 0.9]
+  final_lr_scale: 0.05
+
+model:
+  _name: sign2vec_seq_cls
+  s2ttransformer_checkpoint: /home2/tsun/code/vac_s2t/data/p14t/pami/model_transl/4500/checkpoint_best.pt 
+  pool_method: avg
+  classifier_dropout: 0.2
+  freeze_encoder: True
